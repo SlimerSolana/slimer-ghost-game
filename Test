@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slimer's Ghost Hunt</title>
+    <style>
+        body {
+            background-color: #1b1b1b;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        #gameArea {
+            margin: auto;
+            width: 600px;
+            height: 400px;
+            background: url('düstere-umgebung.png') no-repeat center center;
+            background-size: cover;
+            position: relative;
+        }
+        #slimer, .ghost, .food {
+            width: 50px;
+            height: 50px;
+            position: absolute;
+        }
+        #slimer {
+            background: url('slimer.png') no-repeat center center;
+            background-size: contain;
+        }
+        .ghost {
+            background: url('ghost.png') no-repeat center center;
+            background-size: contain;
+        }
+        .food {
+            background: url('food.png') no-repeat center center;
+            background-size: contain;
+        }
+    </style>
+</head>
+<body>
+    <h1>Slimer's Ghost Hunt</h1>
+    <div id="gameArea">
+        <div id="slimer"></div>
+        <div class="ghost" id="ghost1"></div>
+        <div class="ghost" id="ghost2"></div>
+        <div class="ghost" id="ghost3"></div>
+        <div class="food" id="food1"></div>
+    </div>
+    <p id="status">EP: 100 | Level: 1</p>
+    <script src="spiel.js"></script>
+</body>
+</html>
+let slimerEP = 100;
+let level = 1;
+let enemies = 3;
+let attackPower = 25;
+let foodPower = 30;
+
+const slimer = document.getElementById('slimer');
+const ghosts = document.querySelectorAll('.ghost');
+const food = document.querySelector('.food');
+const status = document.getElementById('status');
+
+function updateStatus() {
+    status.innerHTML = `EP: ${slimerEP} | Level: ${level}`;
+}
+
+function moveSlimer(x, y) {
+    slimer.style.left = `${x}px`;
+    slimer.style.top = `${y}px`;
+}
+
+function checkCollision(a, b) {
+    const aRect = a.getBoundingClientRect();
+    const bRect = b.getBoundingClientRect();
+    return !(
+        aRect.top > bRect.bottom ||
+        aRect.right < bRect.left ||
+        aRect.bottom < bRect.top ||
+        aRect.left > bRect.right
+    );
+}
+
+document.addEventListener('keydown', (e) => {
+    const rect = slimer.getBoundingClientRect();
+    switch(e.key) {
+        case 'ArrowUp': moveSlimer(rect.left, rect.top - 20); break;
+        case 'ArrowDown': moveSlimer(rect.left, rect.top + 20); break;
+        case 'ArrowLeft': moveSlimer(rect.left - 20, rect.top); break;
+        case 'ArrowRight': moveSlimer(rect.left + 20, rect.top); break;
+        case ' ': attack(); break; // Spacebar for attack
+    }
+});
+
+function attack() {
+    ghosts.forEach((ghost) => {
+        if (checkCollision(slimer, ghost)) {
+            ghost.style.display = 'none';
+            slimerEP -= attackPower;
+            enemies--;
+            updateStatus();
+            if (enemies <= 0) {
+                levelUp();
+            }
+        }
+    });
+
+    if (checkCollision(slimer, food)) {
+        slimerEP += foodPower;
+        food.style.display = 'none';
+        updateStatus();
+    }
+}
+
+function levelUp() {
+    level++;
+    enemies = 3 + level; // Increase difficulty
+    slimerEP = 100 + (level * 20); // Increase Slimer's EP
+    resetGame();
+}
+
+function resetGame() {
+    ghosts.forEach((ghost) => {
+        ghost.style.display = 'block';
+    });
+    food.style.display = 'block';
+    updateStatus();
+}
+
+updateStatus();
